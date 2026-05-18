@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  database:
+    image: mongo:6.0
+    container_name: smart-leads-db
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  backend:
+    build: ./backend
+    container_name: smart-leads-backend
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - MONGO_URI=mongodb://database:27017/smart-leads
+      - JWT_SECRET=smart_leads_secret_key_extremely_secure_token
+      - JWT_EXPIRES_IN=7d
+      - CORS_ORIGIN=http://localhost:3000
+    depends_on:
+      - database
+
+  frontend:
+    build: ./frontend
+    container_name: smart-leads-frontend
+    restart: always
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  mongo-data:
