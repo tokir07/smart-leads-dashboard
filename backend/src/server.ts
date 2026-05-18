@@ -27,12 +27,24 @@ app.use(errorHandler);
 const PORT = process.env.PORT ?? 5000;
 const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/smart-leads';
 
-mongoose.connect(mongoUri)
-  .then(() => {
-    console.log('✅ MongoDB connected');
-    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-  })
-  .catch((err) => {
-    console.error('❌ DB connection failed:', err);
-    process.exit(1);
-  });
+let isConnected = false;
+
+// Middleware to ensure DB connection for serverless functions
+app.use(async (req, res, next) => {
+  if (!isConnected && mongoose.connection.readyState !== 1) {
+    try {
+      await mongoose.connect(mongoUri);
+      isConnected = true;
+      console.log('✅ MongoDB connected');
+    } catch (err) {
+      console.error('❌ DB connection failed:', err);
+    }
+  }
+  next();
+});
+
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+  app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+}
+
+export default app;
