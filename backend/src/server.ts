@@ -20,6 +20,7 @@ app.use(helmet());
 app.use(cors({ origin: process.env.CLIENT_URL ?? 'http://localhost:5173', credentials: true }));
 app.use(express.json());
 
+app.get('/', (req, res) => res.send('Smart Leads API is running!'));
 app.use('/api/auth', authRoutes);
 app.use('/api/leads', leadsRoutes);
 app.use(errorHandler);
